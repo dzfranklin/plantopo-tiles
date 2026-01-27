@@ -1,0 +1,4 @@
+[ ] I think I'll need a little b2 proxy
+[ ] How to deploy? Build image locally, on server, etc
+[ ] How to tune resource usage / worker count on server
+[ ] deploy behind caddy, use caddy to check (referer?)

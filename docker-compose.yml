@@ -1,0 +1,46 @@
+services:
+  dev:
+    build: .
+    ports:
+      - "3010:8080"
+    volumes:
+      - ./mapproxy_template.yaml:/mapproxy/mapproxy_template.yaml:ro
+    environment:
+      - OS_API_KEY=${OS_API_KEY}
+      - DEV_SERVER=1
+      - TILES_MY_PERSONALB_ACCESS_KEY_ID=${TILES_MY_PERSONALB_ACCESS_KEY_ID}
+      - TILES_MY_PERSONALB_SECRET_ACCESS_KEY=${TILES_MY_PERSONALB_SECRET_ACCESS_KEY}
+    restart: unless-stopped
+
+  dev-test:
+    build: .
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./mapproxy_template.yaml:/mapproxy/mapproxy_template.yaml:ro
+    environment:
+      - OS_API_KEY=${OS_API_KEY}
+      - DEV_SERVER=1
+      - TILES_MY_PERSONALB_ACCESS_KEY_ID=${TILES_MY_PERSONALB_ACCESS_KEY_ID}
+      - TILES_MY_PERSONALB_SECRET_ACCESS_KEY=${TILES_MY_PERSONALB_SECRET_ACCESS_KEY}
+    restart: "no"
+    networks:
+      - test-network
+
+  test:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    depends_on:
+      - dev-test
+    environment:
+      - MAPPROXY_URL=http://dev-test:8080
+    volumes:
+      - ./test_integration.py:/app/test_integration.py
+    command: python test_integration.py
+    networks:
+      - test-network
+
+networks:
+  test-network:
+    driver: bridge

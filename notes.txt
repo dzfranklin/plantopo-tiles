@@ -1,0 +1,3 @@
+https://github.com/kartoza/docker-mapproxy
+https://mapproxy.github.io/mapproxy/latest/install_docker.html
+https://mapproxy.github.io/mapproxy/latest/configuration.html

@@ -1,0 +1,4 @@
+*
+!mapproxy_template.yaml
+!entrypoint.sh
+!requirements-test.txt

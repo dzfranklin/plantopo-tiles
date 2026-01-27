@@ -1,0 +1,168 @@
+# See <https://mapproxy.github.io/mapproxy/latest/configuration.html>
+# <https://github.com/mapproxy/mapproxy/blob/master/mapproxy/config/defaults.py>
+
+globals:
+  cache:
+    base_dir: /mapproxy/cache
+    meta_buffer: 0
+    concurrent_tile_creators: 16 # parallel requests to a source (per-cache)
+  image:
+    resampling_method: bilinear
+    paletted: false
+  tiles:
+    expires_hours: 7200 # 24 * 300
+  http:
+    concurrent_requests: 64 # requests to a single server
+    headers:
+      User-Agent: github.com/dzfranklin/plantopo-tiles
+
+services:
+  demo:
+  wmts:
+  tms:
+    origin: nw # Configure /tiles endpoint to be slippy map tiles
+    use_grid_names: true
+
+layers:
+  - name: os_leisure
+    title: OS Leisure (Web Mercator - Reprojected)
+    sources: [os_leisure_blended_cache]
+  - name: my-personalb
+    title: My Personal Map - B
+    sources: [my_personalb_blended_cache]
+
+caches:
+  os_leisure_blended_cache:
+    grids: ["3857"]
+    sources:
+      - overview_cache
+      - os_outdoor_cache
+      - os_leisure_cache
+    upscale_tiles: 0
+    disable_storage: true
+
+  os_leisure_cache:
+    grids: ["3857"]
+    sources: [os_leisure_cache_27700]
+    meta_size: [5, 5]
+    upscale_tiles: 0
+    refresh_before: { days: 300 }
+
+  os_outdoor_cache:
+    grids: ["3857"]
+    sources: [os_outdoor_source]
+    upscale_tiles: 0
+    refresh_before: { days: 300 }
+
+  my_personalb_blended_cache:
+    grids: ["3857"]
+    sources:
+      - overview_cache
+      - os_outdoor_cache
+      - osm_detail_cache
+      - my_personalb_cache
+    upscale_tiles: 0
+    disable_storage: true
+
+  my_personalb_cache:
+    grids: ["3857"]
+    sources: [my_personalb_remote_cache]
+    bulk_meta_tiles: false
+    refresh_before: { days: 300 }
+
+  my_personalb_remote_cache:
+    grids: ["3857"]
+    sources: []
+    bulk_meta_tiles: false
+    cache:
+      type: s3
+      bucket_name: tiles-my-personalb
+      profile_name: tiles-my-personalb
+
+  os_leisure_cache_27700:
+    grids: ["27700"]
+    sources: [os_leisure_source]
+    upscale_tiles: 0
+    disable_storage: true
+
+  overview_cache:
+    grids: ["3857"]
+    sources: [overview0_naturalearth_cache, overview1_osm_cache]
+    upscale_tiles: 0
+    disable_storage: true
+
+  osm_detail_cache:
+    grids: ["3857"]
+    sources: [osm_detail_source]
+    upscale_tiles: 0
+    refresh_before: { days: 300 }
+
+  overview1_osm_cache:
+    grids: ["3857"]
+    sources: [overview1_osm_source]
+    upscale_tiles: 0
+    refresh_before: { days: 300 }
+
+  overview0_naturalearth_cache:
+    grids: ["3857"]
+    sources: [overview0_naturalearth_source]
+    upscale_tiles: 0
+    disable_storage: true
+
+sources:
+  os_leisure_source:
+    type: tile
+    url: https://api.os.uk/maps/raster/v1/zxy/Leisure_27700/%(z)s/%(x)s/%(y)s.png?key={{OS_API_KEY}}
+    grid: "27700"
+    coverage:
+      bbox: [-238375.0, 0.0, 900000.0, 1376256.0]
+      bbox_srs: EPSG:27700
+    min_res: 14.0
+    max_res: 1.75
+
+  os_outdoor_source:
+    type: tile
+    url: https://api.os.uk/maps/raster/v1/zxy/Outdoor_3857/%(z)s/%(x)s/%(y)s.png?key={{OS_API_KEY}}
+    grid: "3857"
+    coverage:
+      bbox: [-1198263.0364071354, 6365004.037965424, 213000.0, 8702260.01]
+      bbox_srs: EPSG:3857
+    min_res: 612
+    max_res: 14.0
+    image:
+      transparent: true
+
+  osm_detail_source:
+    # https://operations.osmfoundation.org/policies/tiles/
+    type: tile
+    url: https://tile.openstreetmap.org/%(z)s/%(x)s/%(y)s.png
+    grid: "3857"
+    min_res: 14.0
+    max_res: 1.2
+
+  overview1_osm_source:
+    # https://operations.osmfoundation.org/policies/tiles/
+    type: tile
+    url: https://tile.openstreetmap.org/%(z)s/%(x)s/%(y)s.png
+    grid: "3857"
+    min_res: 4892
+    max_res: 612
+
+  overview0_naturalearth_source:
+    # Natural Earth I with Shaded Relief and Water <https://www.naturalearthdata.com/downloads/50m-raster-data/50m-natural-earth-1/>
+    type: tile
+    url: file:///static-tiles/ne1/%(z)s/%(x)s/%(y)s.png
+    grid: "3857"
+    min_res: 78272
+    max_res: 4892
+grids:
+  "3857":
+    base: GLOBAL_WEBMERCATOR
+  "27700":
+    srs: EPSG:27700
+    bbox: [-238375.0000149319, 0.0, 900000.00000057, 1376256.0000176653]
+    bbox_srs: EPSG:27700
+    origin: nw
+    res: [896.0, 448.0, 224.0, 112.0, 56.0, 28.0, 14.0, 7.0, 3.5, 1.75]
+    stretch_factor: 1.5
+    tile_size: [256, 256]
