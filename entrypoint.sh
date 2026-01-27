@@ -14,8 +14,6 @@ EOF
 
 sed "s|{{OS_API_KEY}}|${OS_API_KEY}|g" /mapproxy/mapproxy_template.yaml > /mapproxy/mapproxy.yaml
 
-if [ ! -z "$DEV_SERVER" ]; then
-    exec mapproxy-util serve-develop -b 0.0.0.0:8080 /mapproxy/mapproxy.yaml
-fi
+# Launch
 
-exec "/scripts/start.sh"
+exec "$@"

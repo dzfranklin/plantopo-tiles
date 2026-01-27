@@ -7,10 +7,10 @@ services:
       - ./mapproxy_template.yaml:/mapproxy/mapproxy_template.yaml:ro
     environment:
       - OS_API_KEY=${OS_API_KEY}
-      - DEV_SERVER=1
       - TILES_MY_PERSONALB_ACCESS_KEY_ID=${TILES_MY_PERSONALB_ACCESS_KEY_ID}
       - TILES_MY_PERSONALB_SECRET_ACCESS_KEY=${TILES_MY_PERSONALB_SECRET_ACCESS_KEY}
     restart: unless-stopped
+    command: [ "/scripts/serve-develop.sh" ]
 
   dev-test:
     build: .
@@ -20,10 +20,10 @@ services:
       - ./mapproxy_template.yaml:/mapproxy/mapproxy_template.yaml:ro
     environment:
       - OS_API_KEY=${OS_API_KEY}
-      - DEV_SERVER=1
       - TILES_MY_PERSONALB_ACCESS_KEY_ID=${TILES_MY_PERSONALB_ACCESS_KEY_ID}
       - TILES_MY_PERSONALB_SECRET_ACCESS_KEY=${TILES_MY_PERSONALB_SECRET_ACCESS_KEY}
     restart: "no"
+    command: [ "/scripts/serve-develop.sh" ]
     networks:
       - test-network
 

@@ -14,11 +14,17 @@ RUN wget "https://naciscdn.org/naturalearth/50m/raster/NE1_50M_SR_W.zip" -O ne1_
 
 FROM kartoza/mapproxy:6.0.1--v2025.12.01
 
+# Avoid cluttering logs with ascii art printed by kartoza/mapproxy
+RUN printf '#!/bin/sh\ntrue'>/usr/bin/figlet
+
 RUN python3 -m pip install boto3~=1.42.35
 
 RUN python3 -c "from pyproj.transformer import TransformerGroup; \
     tg = TransformerGroup('EPSG:27700', 'EPSG:3857', always_xy=True); \
     tg.download_grids(verbose=True);"
+
+RUN printf '#!/bin/sh\nexec mapproxy-util serve-develop -b 0.0.0.0:8080 /mapproxy/mapproxy.yaml\n' \
+    >/scripts/serve-develop.sh && chmod +x /scripts/serve-develop.sh
 
 COPY --from=tile-builder /tiles /static-tiles
 
@@ -29,3 +35,4 @@ RUN chmod +x /entrypoint.sh
 EXPOSE 8080
 
 ENTRYPOINT [ "/entrypoint.sh"]
+CMD [ "/scripts/start.sh" ]
