@@ -41,6 +41,3 @@ Run integration tests with Docker Compose:
 ./test.sh
 ```
 
-## Usage
-
-Once deployed, access the service at `http://localhost:8080`
