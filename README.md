@@ -22,9 +22,9 @@ On my personal server
 **Setup:**
 1. `git clone https://github.com/dzfranklin/plantopo-tiles.git`
 2. Generate tokens and add to /etc/caddy/environment:
-   ```bash
-  python3 -c "import secrets, string; print(''.join(secrets.choice(string.digits + string.ascii_lowercase) for _ in range(32)))"
-   ```
+```bash
+python3 -c "import secrets, string; print(''.join(secrets.choice(string.digits + string.ascii_lowercase) for _ in range(32)))"
+```
 3. Append infra/Caddyfile to /etc/caddy/Caddyfile
 4. Create ~/.config/plantopo-tiles/env
 
