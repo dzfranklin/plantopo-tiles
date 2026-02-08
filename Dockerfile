@@ -17,14 +17,19 @@ FROM kartoza/mapproxy:6.0.1--v2025.12.01
 # Avoid cluttering logs with ascii art printed by kartoza/mapproxy
 RUN printf '#!/bin/sh\ntrue'>/usr/bin/figlet
 
-RUN python3 -m pip install ipdb boto3~=1.42.35
+RUN python3 -m pip install ipdb boto3~=1.42.35 prometheus_client
 
 RUN python3 -c "from pyproj.transformer import TransformerGroup; \
     tg = TransformerGroup('EPSG:27700', 'EPSG:3857', always_xy=True); \
     tg.download_grids(verbose=True);"
 
-RUN printf '#!/bin/sh\nexec mapproxy-util serve-develop -b 0.0.0.0:8080 /mapproxy/mapproxy.yaml\n' \
+RUN printf '#!/bin/sh\nexec python3 -m ptplugin.serve\n' \
     >/scripts/serve-develop.sh && chmod +x /scripts/serve-develop.sh
+
+# After kartoza's start.sh generates app.py, overwrite it with ours
+RUN mkdir -p /docker-entrypoint-mapproxy.d && \
+    printf '#!/bin/sh\ncp /mapproxy/ptplugin/ptplugin/app.py ${MAPPROXY_APP_DIR:-/opt/mapproxy}/app.py\n' \
+    >/docker-entrypoint-mapproxy.d/01-install-app.sh && chmod +x /docker-entrypoint-mapproxy.d/01-install-app.sh
 
 COPY --from=tile-builder /tiles /static-tiles
 
@@ -34,6 +39,11 @@ RUN python3 -m pip install /mapproxy/ptplugin
 COPY mapproxy_template.yaml /mapproxy/mapproxy_template.yaml
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
+
+ENV AWS_CONFIG_FILE=/etc/aws/config
+ENV AWS_SHARED_CREDENTIALS_FILE=/etc/aws/credentials
+ENV PROMETHEUS_MULTIPROC_DIR=/tmp/prometheus_multiproc
+RUN mkdir -p /tmp/prometheus_multiproc && chmod 777 /tmp/prometheus_multiproc
 
 EXPOSE 8080
 

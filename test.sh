@@ -14,22 +14,22 @@ echo "=========================================="
 echo "Starting plantopo-tiles test suite"
 echo "=========================================="
 
-# Start dev-test service in background and capture logs
-echo -e "\n${YELLOW}Starting test server on port 3011...${NC}"
-docker-compose up --build -d dev-test
+# Start prod-test service in background and capture logs
+echo -e "\n${YELLOW}Starting prod test server...${NC}"
+docker-compose up --build -d prod-test
 
 # Give it a moment to start
 sleep 2
 
 # Start capturing logs in background
-docker-compose logs -f dev-test > "$LOG_FILE" 2>&1 &
+docker-compose logs -f prod-test > "$LOG_FILE" 2>&1 &
 LOGS_PID=$!
 
 # Function to cleanup
 cleanup() {
     echo -e "\n${YELLOW}Cleaning up...${NC}"
     kill $LOGS_PID 2>/dev/null || true
-    docker-compose down dev-test test
+    docker-compose down prod-test test
 }
 trap cleanup EXIT
 

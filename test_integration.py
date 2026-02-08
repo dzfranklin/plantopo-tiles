@@ -45,6 +45,26 @@ def assert_tile_response(response):
             raise AssertionError("Tile is entirely transparent")
 
 
+def test_metrics():
+    print("\nTesting metrics endpoint...")
+    response = requests.get(f"{MAPPROXY_URL}/metrics")
+    assert response.status_code == 200, f"Expected 200, got {response.status_code}"
+    assert "text/plain" in response.headers.get("Content-Type", ""), \
+        f"Expected text/plain content type, got {response.headers.get('Content-Type')}"
+    text = response.text
+    assert "mapproxy_tile_requests_total" in text, \
+        "Response doesn't contain mapproxy_tile_requests_total metric"
+    assert "mapproxy_tile_request_duration_seconds" in text, \
+        "Response doesn't contain mapproxy_tile_request_duration_seconds metric"
+    assert "mapproxy_cache_size_bytes" in text, \
+        "Response doesn't contain mapproxy_cache_size_bytes metric"
+    assert "mapproxy_cache_tiles_total" in text, \
+        "Response doesn't contain mapproxy_cache_tiles_total metric"
+    assert 'layer="os_leisure"' in text, \
+        "Metrics don't contain os_leisure layer label"
+    print("✓ Metrics endpoint accessible")
+
+
 def test_demo_interface():
     print("\nTesting demo interface...")
     response = requests.get(f"{MAPPROXY_URL}/demo/")
@@ -96,6 +116,7 @@ def main():
         test_wmts_capabilities,
         test_os_leisure_reprojected_tile_wmts,
         test_os_leisure_reprojected_tile_slippy,
+        test_metrics,  # Run last so tile request counters are populated
     ]
 
     failed = 0

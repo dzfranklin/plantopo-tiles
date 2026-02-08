@@ -24,7 +24,7 @@ services:
     depends_on:
       - dev
 
-  dev-test:
+  prod-test:
     build: .
     ports:
       - "8080:8080"
@@ -35,7 +35,6 @@ services:
       - TILES_MY_PERSONALB_ACCESS_KEY_ID=${TILES_MY_PERSONALB_ACCESS_KEY_ID}
       - TILES_MY_PERSONALB_SECRET_ACCESS_KEY=${TILES_MY_PERSONALB_SECRET_ACCESS_KEY}
     restart: "no"
-    command: [ "/scripts/serve-develop.sh" ]
     networks:
       - test-network
 
@@ -44,9 +43,9 @@ services:
       context: .
       dockerfile: Dockerfile.test
     depends_on:
-      - dev-test
+      - prod-test
     environment:
-      - MAPPROXY_URL=http://dev-test:8080
+      - MAPPROXY_URL=http://prod-test:8080
     volumes:
       - ./test_integration.py:/app/test_integration.py
     command: python test_integration.py

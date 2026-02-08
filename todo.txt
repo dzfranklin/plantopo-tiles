@@ -1,4 +1,4 @@
-[ ] collect metrics: requests, upstream requests, cache hits, etc. Also save request log I think
+[ ] collect upstream request metrics
 [ ] How to deploy? Build image locally, on server, etc
 [ ] How to tune resource usage / worker count on server
 [ ] deploy behind caddy, use caddy to check (referer?)
