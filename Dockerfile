@@ -30,8 +30,8 @@ RUN printf '#!/bin/sh\nexec python3 -m ptplugin.serve\n' \
 RUN mkdir -p /docker-entrypoint-mapproxy.d && \
     printf '#!/bin/sh\ncp /mapproxy/ptplugin/ptplugin/app.py ${MAPPROXY_APP_DIR:-/opt/mapproxy}/app.py\n' \
     >/docker-entrypoint-mapproxy.d/01-install-app.sh && chmod +x /docker-entrypoint-mapproxy.d/01-install-app.sh && \
-    printf '#!/bin/sh\necho "post-buffering = 65535" >> /settings/uwsgi.ini\n' \
-    >/docker-entrypoint-mapproxy.d/02-uwsgi-post-buffering.sh && chmod +x /docker-entrypoint-mapproxy.d/02-uwsgi-post-buffering.sh
+    printf '#!/bin/sh\ncat >> /settings/uwsgi.ini <<EOF\npost-buffering = 65535\nprocesses = 4\nthreads = 2\nmax-requests = 1000\nharakiri = 120\nEOF\n' \
+    >/docker-entrypoint-mapproxy.d/02-uwsgi-settings.sh && chmod +x /docker-entrypoint-mapproxy.d/02-uwsgi-settings.sh
 
 COPY --from=tile-builder /tiles /static-tiles
 

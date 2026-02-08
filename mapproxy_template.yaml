@@ -5,7 +5,7 @@ globals:
   cache:
     base_dir: /mapproxy/cache
     meta_buffer: 0
-    concurrent_tile_creators: 16 # parallel requests to a source (per-cache)
+    concurrent_tile_creators: 25 # parallel requests to a source (per-cache)
   image:
     resampling_method: bilinear
     paletted: false
