@@ -19,6 +19,7 @@ See also notes.txt
 
 On my personal server
 
+**Setup:**
 1. `git clone https://github.com/dzfranklin/plantopo-tiles.git`
 2. Generate tokens and add to /etc/caddy/environment:
    ```bash
@@ -26,7 +27,11 @@ On my personal server
    ```
 3. Append infra/Caddyfile to /etc/caddy/Caddyfile
 4. Create ~/.config/plantopo-tiles/env
-5. `./deploy.sh`
+
+**Deploy**
+1. `sudo su app`
+2. `cd ~/plantopo-tiles`
+3. `git pull && ./deploy.sh`
 
 ## Integration Testing
 
