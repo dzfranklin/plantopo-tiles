@@ -25,7 +25,7 @@ On my personal server
   python3 -c "import secrets, string; print(''.join(secrets.choice(string.digits + string.ascii_lowercase) for _ in range(32)))"
    ```
 3. Append infra/Caddyfile to /etc/caddy/Caddyfile
-4. Create ~/.config/plantopo-tiles/environment
+4. Create ~/.config/plantopo-tiles/env
 5. `./deploy.sh`
 
 ## Integration Testing
