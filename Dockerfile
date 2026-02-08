@@ -12,7 +12,7 @@ RUN wget "https://naciscdn.org/naturalearth/50m/raster/NE1_50M_SR_W.zip" -O ne1_
     gdal2tiles.py -z 0-4 --xyz -r bilinear --tilesize 256 --tiledriver PNG -w none -a 0,0,0 NE1_50M_SR_W/NE1_50M_SR_W.tif /tiles/ne1 && \
     rm -r ne1_50m_sr_w.zip NE1_50M_SR_W
 
-FROM kartoza/mapproxy:6.0.1--v2025.12.01
+FROM docker.io/kartoza/mapproxy:6.0.1--v2025.12.01
 
 # Avoid cluttering logs with ascii art printed by kartoza/mapproxy
 RUN printf '#!/bin/sh\ntrue'>/usr/bin/figlet
