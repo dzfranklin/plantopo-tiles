@@ -5,7 +5,7 @@ Wants=network-online.target
 
 [Container]
 Image=localhost/plantopo-tiles:latest
-PublishPort=8080:8080
+PublishPort=3010:8080
 Volume=plantopo-tiles-cache:/mapproxy/cache:Z
 EnvironmentFile=%h/.config/plantopo-tiles/env
 

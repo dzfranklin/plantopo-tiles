@@ -8,23 +8,29 @@ Compose for integration testing.
 
 ## Development
 
-* `./dev.sh` Run development server, see http://localhost:3010
-* `dev.sh --prod-server`
+mapproxy: http://localhost:3010 tile viewer: http://localhost:3011
+
+* `./dev.sh` Run development servers
 * `./test.sh` Run integration tests
 
 See also notes.txt
 
 ## Production Deployment (Podman Quadlet + systemd)
 
-TODO
+On my personal server
+
+1. `git clone git@github.com:dzfranklin/plantopo-tiles.git`
+2. Add token env vars to /etc/caddy/env
+3. Append infra/Caddyfile to /etc/caddy/Caddyfile
+4. Create ~/.config/plantopo-tiles/env
+5. `./deploy.sh`
 
 ## Integration Testing
 
 Run integration tests with Docker Compose:
 
 ```bash
-export OS_API_KEY=your_api_key_here
-docker-compose up --build test
+./test.sh
 ```
 
 ## Usage

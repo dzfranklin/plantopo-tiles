@@ -3,7 +3,7 @@
   "name": "My Personal Map - B",
   "description": "Custom personal map blending OS Outdoor, OSM, and custom tiles",
   "tiles": [
-    "/tiles/my-personalb/3857/{z}/{x}/{y}.png"
+    "https://tiles.plantopo.com/tiles/my-personalb/3857/{z}/{x}/{y}.png"
   ],
   "minzoom": 0,
   "maxzoom": 14,

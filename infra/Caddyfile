@@ -1,0 +1,32 @@
+tiles.plantopo.com {
+	# TileJSON — static files, either token
+	handle /tilejson/* {
+		@unauthorized {
+			not header Authorization "Bearer {$TILES_TOKEN_FULL}"
+			not header Authorization "Bearer {$TILES_TOKEN_STANDARD}"
+		}
+		respond @unauthorized "Unauthorized" 401
+		root * /home/app/plantopo-tiles
+		file_server
+	}
+
+	# my-personalb tiles — full token only
+	handle /tiles/my-personalb/* {
+		@unauthorized not header Authorization "Bearer {$TILES_TOKEN_FULL}"
+		respond @unauthorized "Unauthorized" 401
+		reverse_proxy localhost:3010
+	}
+
+	# All other tiles — either token
+	handle /tiles/* {
+		@unauthorized {
+			not header Authorization "Bearer {$TILES_TOKEN_FULL}"
+			not header Authorization "Bearer {$TILES_TOKEN_STANDARD}"
+		}
+		respond @unauthorized "Unauthorized" 401
+		reverse_proxy localhost:3010
+	}
+
+	# Everything else blocked
+	respond "Not Found" 404
+}

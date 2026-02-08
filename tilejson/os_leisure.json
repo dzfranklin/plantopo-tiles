@@ -3,7 +3,7 @@
   "name": "OS Leisure",
   "description": "Ordnance Survey Leisure maps reprojected to Web Mercator",
   "tiles": [
-    "/tiles/os_leisure/3857/{z}/{x}/{y}.png"
+    "https://tiles.plantopo.com/tiles/os_leisure/3857/{z}/{x}/{y}.png"
   ],
   "minzoom": 0,
   "maxzoom": 15,
