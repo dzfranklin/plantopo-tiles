@@ -1,7 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "WebFetch(domain:docs.os.uk)"
+      "WebFetch(domain:docs.os.uk)",
+      "Bash(./test.sh:*)",
+      "Bash(docker-compose build:*)"
     ]
   }
 }

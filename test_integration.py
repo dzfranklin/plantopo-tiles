@@ -62,6 +62,12 @@ def test_metrics():
         "Response doesn't contain mapproxy_cache_tiles_total metric"
     assert 'layer="os_leisure"' in text, \
         "Metrics don't contain os_leisure layer label"
+    assert "mapproxy_upstream_requests_total" in text, \
+        "Response doesn't contain mapproxy_upstream_requests_total metric"
+    assert "mapproxy_upstream_request_duration_seconds" in text, \
+        "Response doesn't contain mapproxy_upstream_request_duration_seconds metric"
+    assert 'source="os_open"' in text or 'source="os_premium"' in text, \
+        "Upstream metrics don't contain os source label"
     print("✓ Metrics endpoint accessible")
 
 

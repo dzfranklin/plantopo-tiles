@@ -1,6 +1,8 @@
+import logging
 import os
 import re
 import time
+from urllib.parse import urlparse
 
 from prometheus_client import (
     CollectorRegistry,
@@ -24,6 +26,80 @@ _tile_path_re = re.compile(
     r"^/(?:tiles|tms)/(?P<layer>[^/]+)/(?:[^/]+/)?(?P<z>\d+)/\d+/\d+\.\w+$"
 )
 _service_re = re.compile(r"^/(\w+)")
+
+
+# OS Maps API: zoom levels at which data becomes premium
+# https://docs.os.uk/os-apis/accessing-os-apis/os-maps-api/layers-and-styles
+# Outdoor_3857: open 7-16, premium 17-20
+# Leisure_27700: open 0-5, premium 6-9
+_OS_PREMIUM_MIN_ZOOM = {
+    "Outdoor_3857": 17,
+    "Road_3857": 17,
+    "Light_3857": 17,
+    "Outdoor_27700": 10,
+    "Road_27700": 10,
+    "Light_27700": 10,
+    "Leisure_27700": 6,
+}
+
+# Matches e.g. /zxy/Outdoor_3857/13/4018/2504.png
+_os_zxy_re = re.compile(r"/zxy/(\w+)/(\d+)/")
+
+
+def _source_label_from_url(url):
+    """Extract a short source label from an upstream request URL."""
+    try:
+        parsed = urlparse(url)
+        host = parsed.hostname or ""
+    except Exception:
+        return "unknown"
+    if host == "api.os.uk":
+        m = _os_zxy_re.search(parsed.path)
+        if m:
+            layer, zoom = m.group(1), int(m.group(2))
+            premium_min = _OS_PREMIUM_MIN_ZOOM.get(layer)
+            if premium_min is not None and zoom >= premium_min:
+                return "os_premium"
+        return "os_open"
+    if host == "tile.openstreetmap.org":
+        return "osm"
+    if "backblazeb2.com" in host:
+        return "b2"
+    if host == "" or host == "localhost":
+        return "local"
+    return host
+
+
+class _UpstreamMetricsHandler(logging.Handler):
+    """Logging handler that captures mapproxy.source.request log records
+    and feeds them into Prometheus metrics.
+
+    Log format (from mapproxy/client/log.py):
+        METHOD URL STATUS SIZE_KB DURATION_MS
+    """
+
+    def __init__(self, upstream_requests, upstream_request_duration):
+        super().__init__(level=logging.INFO)
+        self.upstream_requests = upstream_requests
+        self.upstream_request_duration = upstream_request_duration
+
+    def emit(self, record):
+        try:
+            parts = record.getMessage().split()
+            if len(parts) < 5:
+                return
+            url = parts[1]
+            status = parts[2]
+            duration_ms = parts[4]
+
+            source = _source_label_from_url(url)
+            self.upstream_requests.labels(source=source, status=status).inc()
+            if duration_ms != "-":
+                self.upstream_request_duration.labels(source=source).observe(
+                    float(duration_ms) / 1000.0
+                )
+        except Exception:
+            pass
 
 
 class PtMiddleware:
@@ -62,6 +138,26 @@ class PtMiddleware:
             "Number of cached tiles",
             ["cache"],
             multiprocess_mode="mostrecent",
+        )
+
+        self.upstream_requests = Counter(
+            "mapproxy_upstream_requests_total",
+            "Upstream source requests by source and status",
+            ["source", "status"],
+        )
+        self.upstream_request_duration = Histogram(
+            "mapproxy_upstream_request_duration_seconds",
+            "Upstream source request duration by source",
+            ["source"],
+        )
+
+        source_logger = logging.getLogger("mapproxy.source.request")
+        source_logger.setLevel(logging.INFO)
+        source_logger.propagate = False
+        source_logger.addHandler(
+            _UpstreamMetricsHandler(
+                self.upstream_requests, self.upstream_request_duration
+            )
         )
 
     def __call__(self, environ, start_response):
