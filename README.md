@@ -41,3 +41,7 @@ Run integration tests with Docker Compose:
 ./test.sh
 ```
 
+## Monitoring
+
+The application exposes Prometheus metrics at `/metrics` endpoint. A
+pre-configured Grafana dashboard is available in `infra/grafana-dashboard.json`.
