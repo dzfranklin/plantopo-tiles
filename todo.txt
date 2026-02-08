@@ -1,4 +1,6 @@
-[ ] I think I'll need a little b2 proxy
+[ ] disable browser cache in dev
+[ ] ideally add slippy demo so I can directly see zoom levels etc. probably easiest as separate server in docker-compose?
+[ ] collect metrics: requests, upstream requests, cache hits, etc. Also save request log I think
 [ ] How to deploy? Build image locally, on server, etc
 [ ] How to tune resource usage / worker count on server
 [ ] deploy behind caddy, use caddy to check (referer?)

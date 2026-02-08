@@ -12,7 +12,6 @@ globals:
   tiles:
     expires_hours: 7200 # 24 * 300
   http:
-    concurrent_requests: 64 # requests to a single server
     headers:
       User-Agent: github.com/dzfranklin/plantopo-tiles
 
@@ -30,6 +29,7 @@ layers:
   - name: my-personalb
     title: My Personal Map - B
     sources: [my_personalb_blended_cache]
+    max_res: 4.8
 
 caches:
   os_leisure_blended_cache:
@@ -66,18 +66,9 @@ caches:
 
   my_personalb_cache:
     grids: ["3857"]
-    sources: [my_personalb_remote_cache]
+    sources: [my_personalb_source]
     bulk_meta_tiles: false
     refresh_before: { days: 300 }
-
-  my_personalb_remote_cache:
-    grids: ["3857"]
-    sources: []
-    bulk_meta_tiles: false
-    cache:
-      type: s3
-      bucket_name: tiles-my-personalb
-      profile_name: tiles-my-personalb
 
   os_leisure_cache_27700:
     grids: ["27700"]
@@ -107,7 +98,7 @@ caches:
     grids: ["3857"]
     sources: [overview0_naturalearth_source]
     upscale_tiles: 0
-    disable_storage: true
+    refresh_before: { days: 300 }
 
 sources:
   os_leisure_source:
@@ -129,6 +120,20 @@ sources:
       bbox_srs: EPSG:3857
     min_res: 612
     max_res: 14.0
+    image:
+      transparent: true
+
+  my_personalb_source:
+    type: s3tile
+    s3:
+      profile_name: tiles-my-personalb
+    url: https://tiles-my-personalb.s3.eu-central-003.backblazeb2.com/reverse_tms/%(x)s/%(y)s/%(z)s.png
+    grid: GLOBAL_MERCATOR
+    coverage:
+      bbox: [-648186.00, 6513657.80, -46473.71, 8030168.44]
+      bbox_srs: EPSG:3857
+    min_res: 9.6
+    max_res: 4.8
     image:
       transparent: true
 

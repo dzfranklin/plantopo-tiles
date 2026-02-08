@@ -1,4 +1,5 @@
 *
 !mapproxy_template.yaml
 !entrypoint.sh
+!ptplugin/
 !requirements-test.txt
