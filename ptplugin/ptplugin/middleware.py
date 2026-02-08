@@ -102,6 +102,10 @@ class _UpstreamMetricsHandler(logging.Handler):
             pass
 
 
+_TILEJSON_DIR = os.environ.get("TILEJSON_DIR", "/tilejson")
+_tilejson_re = re.compile(r"^/tilejson/([a-z0-9_-]+)\.json$")
+
+
 class PtMiddleware:
     def __init__(self, app, dev_mode=False, cache_dir=None):
         assert cache_dir is not None, "cache_dir must be provided for cache metrics"
@@ -167,6 +171,10 @@ class PtMiddleware:
             self._update_cache_metrics()
             return self._serve_metrics(environ, start_response)
 
+        tilejson_match = _tilejson_re.match(path)
+        if tilejson_match:
+            return self._serve_tilejson(tilejson_match.group(1), start_response)
+
         tile_match = _tile_path_re.match(path)
         start = time.monotonic()
         status_code = [None]
@@ -226,6 +234,23 @@ class PtMiddleware:
                         pass
             self.cache_size_bytes.labels(cache=cache_name).set(total_size)
             self.cache_tile_count.labels(cache=cache_name).set(tile_count)
+
+    def _serve_tilejson(self, name, start_response):
+        filepath = os.path.join(_TILEJSON_DIR, name + ".json")
+        try:
+            with open(filepath, "rb") as f:
+                data = f.read()
+        except FileNotFoundError:
+            start_response("404 Not Found", [("Content-Type", "text/plain")])
+            return [b"Not Found"]
+        start_response(
+            "200 OK",
+            [
+                ("Content-Type", "application/json"),
+                ("Content-Length", str(len(data))),
+            ],
+        )
+        return [data]
 
     def _serve_metrics(self, environ, start_response):
         if self.multiprocess:

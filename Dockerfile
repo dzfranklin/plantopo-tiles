@@ -38,6 +38,8 @@ COPY --from=tile-builder /tiles /static-tiles
 COPY ptplugin /mapproxy/ptplugin
 RUN python3 -m pip install /mapproxy/ptplugin
 
+COPY tilejson /tilejson
+
 COPY mapproxy_template.yaml /mapproxy/mapproxy_template.yaml
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh

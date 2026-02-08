@@ -19,10 +19,13 @@ See also notes.txt
 
 On my personal server
 
-1. `git clone git@github.com:dzfranklin/plantopo-tiles.git`
-2. Add token env vars to /etc/caddy/env
+1. `git clone https://github.com/dzfranklin/plantopo-tiles.git`
+2. Generate tokens and add to /etc/caddy/environment:
+   ```bash
+  python3 -c "import secrets, string; print(''.join(secrets.choice(string.digits + string.ascii_lowercase) for _ in range(32)))"
+   ```
 3. Append infra/Caddyfile to /etc/caddy/Caddyfile
-4. Create ~/.config/plantopo-tiles/env
+4. Create ~/.config/plantopo-tiles/environment
 5. `./deploy.sh`
 
 ## Integration Testing
