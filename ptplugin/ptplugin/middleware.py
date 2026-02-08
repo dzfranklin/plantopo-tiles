@@ -77,14 +77,19 @@ class PtMiddleware:
 
         def capturing_start_response(status, headers, exc_info=None):
             status_code[0] = status[:3]
+
+            headers = [
+                (k, v)
+                for k, v in headers
+                if k.lower() not in ("cache-control", "pragma", "expires")
+            ]
+
             if self.dev_mode:
-                headers = [
-                    (k, v)
-                    for k, v in headers
-                    if k.lower() not in ("cache-control", "pragma", "expires")
-                ]
-                for k, v in NO_CACHE_HEADERS.items():
-                    headers.append((k, v))
+                headers.append(("Cache-Control", "no-cache"))
+            else:
+                # 24 hours (from OS terms): 24 * 3600 = 86400 seconds
+                headers.append(("Cache-Control", "public, max-age=86400, immutable"))
+
             return start_response(status, headers, exc_info)
 
         result = self.app(environ, capturing_start_response)
