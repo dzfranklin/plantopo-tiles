@@ -1,0 +1,24 @@
+{
+  "tilejson": "3.0.0",
+  "name": "My Personal Map - B",
+  "description": "Custom personal map blending OS Outdoor, OSM, and custom tiles",
+  "tiles": [
+    "/tiles/my-personalb/3857/{z}/{x}/{y}.png"
+  ],
+  "minzoom": 0,
+  "maxzoom": 14,
+  "bounds": [
+    -180,
+    -85,
+    180,
+    85
+  ],
+  "center": [
+    -3.5,
+    55.4,
+    6
+  ],
+  "format": "png",
+  "scheme": "xyz",
+  "attribution": "Contains OS data &copy; Crown copyright and database rights &copy; OpenStreetMap contributors"
+}
