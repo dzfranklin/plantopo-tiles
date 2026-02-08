@@ -1,98 +1,138 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Tile Viewer</title>
-  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css">
-  <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
-  <style>
-    body { margin: 0; }
-    #map { position: absolute; top: 0; bottom: 0; width: 100%; }
-    #controls {
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      z-index: 1;
-      background: white;
-      padding: 8px 12px;
-      border-radius: 4px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.3);
-      font-family: sans-serif;
-      font-size: 14px;
-    }
-    #controls select {
-      margin-left: 6px;
-      font-size: 14px;
-    }
-    #zoom {
-      margin-left: 12px;
-      cursor: pointer;
-      user-select: none;
-    }
-  </style>
-</head>
-<body>
-  <div id="controls">
-    <label>Layer:
-      <select id="layer-select"></select>
-    </label>
-    <span id="zoom" title="Click to set zoom"></span>
-  </div>
-  <div id="map"></div>
-  <script>
-    const LAYERS = [
-      { name: 'OS Leisure', url: '/tilejson/os_leisure.json' },
-      { name: 'My Personal Map - B', url: '/tilejson/my-personalb.json' },
-    ];
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Tile Viewer</title>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css"
+    />
+    <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+    <style>
+      body {
+        margin: 0;
+      }
+      #map {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 100%;
+      }
+      #controls {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        z-index: 1;
+        background: white;
+        padding: 8px 12px;
+        border-radius: 4px;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+        font-family: sans-serif;
+        font-size: 14px;
+      }
+      #controls select {
+        margin-left: 6px;
+        font-size: 14px;
+      }
+      #zoom {
+        margin-left: 12px;
+        cursor: pointer;
+        user-select: none;
+      }
+      #controls label {
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="controls">
+      <label
+        >Layer:
+        <select id="layer-select"></select>
+      </label>
+      <span id="zoom" title="Click to set zoom"></span>
+      <label style="margin-left: 12px">
+        <input type="checkbox" id="prod-toggle" /> Production tiles
+      </label>
+    </div>
+    <div id="map"></div>
+    <script>
+      const PROD_TILES_TOKEN = "__PROD_TILES_TOKEN__";
+      const PROD_ORIGIN = "https://tiles.plantopo.com";
 
-    const select = document.getElementById('layer-select');
-    let map;
+      const LAYERS = [
+        { name: "OS Leisure", tilejson: "os_leisure" },
+        { name: "My Personal Map - B", tilejson: "my-personalb" },
+      ];
 
-    function setLayer(layer) {
-      if (map.getLayer('tiles')) map.removeLayer('tiles');
-      if (map.getSource('tiles')) map.removeSource('tiles');
+      const select = document.getElementById("layer-select");
+      const prodToggle = document.getElementById("prod-toggle");
+      let map;
 
-      map.addSource('tiles', { type: 'raster', url: layer.url });
-      map.addLayer({ id: 'tiles', type: 'raster', source: 'tiles' });
-    }
+      function tilejsonUrl(layer) {
+        if (prodToggle.checked) {
+          return PROD_ORIGIN + "/tilejson/" + layer.tilejson + ".json";
+        }
+        return "/tilejson/" + layer.tilejson + ".json";
+      }
 
-    for (const [i, layer] of LAYERS.entries()) {
-      const opt = document.createElement('option');
-      opt.value = i;
-      opt.textContent = layer.name;
-      select.appendChild(opt);
-    }
+      function setLayer(layer) {
+        if (map.getLayer("tiles")) map.removeLayer("tiles");
+        if (map.getSource("tiles")) map.removeSource("tiles");
 
-    map = new maplibregl.Map({
-      container: 'map',
-      style: { version: 8, sources: {}, layers: [] },
-      center: [-3.5, 55.4],
-      zoom: 6,
-      hash: true,
-    });
+        map.addSource("tiles", { type: "raster", url: tilejsonUrl(layer) });
+        map.addLayer({ id: "tiles", type: "raster", source: "tiles" });
+      }
 
-    const zoomEl = document.getElementById('zoom');
-    function updateZoom() {
-      zoomEl.textContent = 'z' + map.getZoom().toFixed(1);
-    }
-    map.on('zoom', updateZoom);
-    updateZoom();
+      for (const [i, layer] of LAYERS.entries()) {
+        const opt = document.createElement("option");
+        opt.value = i;
+        opt.textContent = layer.name;
+        select.appendChild(opt);
+      }
 
-    zoomEl.addEventListener('click', () => {
-      const z = prompt('Zoom level:', map.getZoom().toFixed(1));
-      if (z !== null && !isNaN(z)) map.setZoom(Number(z));
-    });
+      map = new maplibregl.Map({
+        container: "map",
+        style: { version: 8, sources: {}, layers: [] },
+        center: [-3.5, 55.4],
+        zoom: 6,
+        hash: true,
+        transformRequest: (url) => {
+          if (prodToggle.checked && url.startsWith(PROD_ORIGIN)) {
+            return {
+              url,
+              headers: { Authorization: "Bearer " + PROD_TILES_TOKEN },
+            };
+          }
+        },
+      });
 
-    map.addControl(new maplibregl.NavigationControl(), 'top-right');
+      const zoomEl = document.getElementById("zoom");
+      function updateZoom() {
+        zoomEl.textContent = "z" + map.getZoom().toFixed(1);
+      }
+      map.on("zoom", updateZoom);
+      updateZoom();
 
-    map.on('load', () => {
-      setLayer(LAYERS[0]);
-    });
+      zoomEl.addEventListener("click", () => {
+        const z = prompt("Zoom level:", map.getZoom().toFixed(1));
+        if (z !== null && !isNaN(z)) map.setZoom(Number(z));
+      });
 
-    select.addEventListener('change', () => {
-      setLayer(LAYERS[select.value]);
-    });
-  </script>
-</body>
+      map.addControl(new maplibregl.NavigationControl(), "top-right");
+
+      map.on("load", () => {
+        setLayer(LAYERS[0]);
+      });
+
+      select.addEventListener("change", () => {
+        setLayer(LAYERS[select.value]);
+      });
+
+      prodToggle.addEventListener("change", () => {
+        setLayer(LAYERS[select.value]);
+      });
+    </script>
+  </body>
 </html>
