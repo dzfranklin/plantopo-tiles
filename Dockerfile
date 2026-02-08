@@ -29,7 +29,9 @@ RUN printf '#!/bin/sh\nexec python3 -m ptplugin.serve\n' \
 # After kartoza's start.sh generates app.py, overwrite it with ours
 RUN mkdir -p /docker-entrypoint-mapproxy.d && \
     printf '#!/bin/sh\ncp /mapproxy/ptplugin/ptplugin/app.py ${MAPPROXY_APP_DIR:-/opt/mapproxy}/app.py\n' \
-    >/docker-entrypoint-mapproxy.d/01-install-app.sh && chmod +x /docker-entrypoint-mapproxy.d/01-install-app.sh
+    >/docker-entrypoint-mapproxy.d/01-install-app.sh && chmod +x /docker-entrypoint-mapproxy.d/01-install-app.sh && \
+    printf '#!/bin/sh\necho "post-buffering = 65535" >> /settings/uwsgi.ini\n' \
+    >/docker-entrypoint-mapproxy.d/02-uwsgi-post-buffering.sh && chmod +x /docker-entrypoint-mapproxy.d/02-uwsgi-post-buffering.sh
 
 COPY --from=tile-builder /tiles /static-tiles
 
