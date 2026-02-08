@@ -6,7 +6,7 @@
     "https://tiles.plantopo.com/tiles/os_leisure/3857/{z}/{x}/{y}.png"
   ],
   "minzoom": 0,
-  "maxzoom": 15,
+  "maxzoom": 16,
   "bounds": [
     -180,
     -85,
