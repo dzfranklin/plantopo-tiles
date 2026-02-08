@@ -248,6 +248,7 @@ class PtMiddleware:
             [
                 ("Content-Type", "application/json"),
                 ("Content-Length", str(len(data))),
+                ("Access-Control-Allow-Origin", "*"),
             ],
         )
         return [data]
