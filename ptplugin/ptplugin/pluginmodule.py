@@ -1,17 +1,19 @@
-import profile
 from mapproxy.config.loader import register_source_configuration
-from mapproxy.config.loader import TileSourceConfiguration
-from mapproxy.client.http import HTTPClient
-from mapproxy.util.ext.dictspec.spec import combined
-from mapproxy.config.spec import mapproxy_yaml_spec
-import boto3
-from botocore.auth import SigV4Auth
-from botocore.awsrequest import AWSRequest
-from botocore.credentials import Credentials
+from mapproxy.wsgiapp import MapProxyApp, register_request_interceptor
+from mapproxy.request.base import Request
+
+from ptplugin.s3tile import S3TileSourceConfiguration
 
 import logging
+import os
 
 l = logging.getLogger("mapproxy.pt")
+
+NO_CACHE_HEADERS = {
+    "Cache-Control": "no-cache, no-store, must-revalidate",
+    "Pragma": "no-cache",
+    "Expires": "0",
+}
 
 
 def plugin_entrypoint():
@@ -22,52 +24,33 @@ def plugin_entrypoint():
         yaml_spec_source_def=S3TileSourceConfiguration.spec_source_def,
     )
 
+    register_request_interceptor(interceptor)
+
+    if os.environ.get("DEV_MODE"):
+        _patch_no_cache()
+        l.info("DEV_MODE: response caching disabled")
+
     l.info("ptplugin loaded")
 
 
-class S3TileSourceConfiguration(TileSourceConfiguration):
-    source_type = ("s3tile",)
+def _patch_no_cache():
+    _original_call = MapProxyApp.__call__
 
-    spec_source_def = combined(
-        list(mapproxy_yaml_spec["sources"].values())[0].specs["tile"],
-        dict(s3={"profile_name": str()}),
-    )
+    def __call__(self, environ, start_response):
+        def start_response_no_cache(status, headers, exc_info=None):
+            headers = [
+                (k, v)
+                for k, v in headers
+                if k.lower() not in ("cache-control", "pragma", "expires")
+            ]
+            for k, v in NO_CACHE_HEADERS.items():
+                headers.append((k, v))
+            return start_response(status, headers, exc_info)
 
-    def http_client(self, url):
-        s3_conf = self.conf.get("s3", {})
-        return S3HTTPClient(s3_conf), url
+        return _original_call(self, environ, start_response_no_cache)
+
+    MapProxyApp.__call__ = __call__
 
 
-class S3HTTPClient(HTTPClient):
-    def __init__(self, s3_conf):
-        super().__init__()
-
-        profile_name = s3_conf.get("profile_name")
-
-        sess = boto3.Session(profile_name=profile_name)
-        creds = sess.get_credentials().get_frozen_credentials()
-        region_name = sess.region_name
-
-        self.sigv4 = SigV4Auth(creds, "s3", region_name)
-
-    def open(self, url, data=None, method=None, headers=None):
-        method = method or "GET"
-        if method not in ("GET", "HEAD"):
-            raise NotImplementedError(
-                "S3HTTPClient: Only GET and HEAD methods are supported"
-            )
-        if data is not None:
-            raise NotImplementedError("S3HTTPClient: Data payloads are not supported")
-
-        req = AWSRequest(
-            method=method,
-            url=url,
-            headers=headers,
-        )
-        self.sigv4.add_auth(req)
-        prepped = req.prepare()
-        return super().open(
-            prepped.url,
-            method=prepped.method,
-            headers=dict(prepped.headers),
-        )
+def interceptor(req):
+    return req

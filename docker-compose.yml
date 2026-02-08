@@ -9,6 +9,7 @@ services:
       - OS_API_KEY=${OS_API_KEY}
       - TILES_MY_PERSONALB_ACCESS_KEY_ID=${TILES_MY_PERSONALB_ACCESS_KEY_ID}
       - TILES_MY_PERSONALB_SECRET_ACCESS_KEY=${TILES_MY_PERSONALB_SECRET_ACCESS_KEY}
+      - DEV_MODE=true
     restart: unless-stopped
     command: [ "/scripts/serve-develop.sh" ]
 
